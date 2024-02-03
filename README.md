@@ -2,7 +2,7 @@
 
 A collection of multiple open source information collection tools.
 
-# User
+# Build and Run
 
 ```
 chmod +x *.sh
