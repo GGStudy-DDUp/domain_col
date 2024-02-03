@@ -1,5 +1,6 @@
 #!/bin/bash
 cd tool
+mkdir dic result tool
 tools=(
     "blacklanternsecurity/bbot"
     "screetsec/Sudomy"
