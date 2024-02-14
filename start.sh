@@ -36,6 +36,14 @@ done
 
 # 处理其他业务逻辑
 if [ -n "$domain" ] && [ -n "$dic" ] ; then
+  if [ "$UID" -eq 0 ]; then
+    base_pwd=$(pwd)
+    sudo_flag=""
+else
+    sudo -v
+    base_pwd=$(sudo pwd)
+    sudo_flag="sudo"
+fi
   start_time=$(date +%s)
   current_date=$(date +%Y-%m-%d)
   # 显示指定的参数
@@ -58,18 +66,18 @@ if [ -n "$domain" ] && [ -n "$dic" ] ; then
   }
 
   commands=(
-    "GooFuzz -t \"$domain\" -s -p 100 -d 10 -o \"./result/$current_date/goofuzz_domain_M1.txt\" &"
-    "GooFuzz -t \"$domain\" -e log,sql,txt,conf,pdf,doc,xls,ppt,odp,ods,docx,xlsx,pptx,bak,mdb,inc -p 100 -d 10 -o \"./result/$current_date/goofuzz_file_M1.txt\" &"
-    "GooFuzz -t \"$domain\" -w fckeditor,ewebeditor,examples,admin,login,manage,system,console,log -p 100 -d 10 -o \"./result/$current_date/goofuzz_back_M1.txt\" &"
-    "GooFuzz -t \"$domain\" -c \"登录\",\"后台\",\"日志\",\"配置\",\"备份\",pw,password,username,login -p 100 -d 10 -o \"./result/$current_date/goofuzz_keyword_M1.txt\" &"
-    "python3 tool/metagoofil/metagoofil.py -d \"$domain\" -f -t log,sql,txt,conf,pdf,doc,xls,ppt,odp,ods,docx,xlsx,pptx,bak,mdb,inc &"
-    "amass intel -ip -whois -d \"$domain\" -o \"./result/$current_date/amass_M1.txt\" &"
+    "\"$sudo_flag\" GooFuzz -t \"$domain\" -s -p 100 -d 10 -o \"./result/$current_date/goofuzz_domain_M1.txt\" > /dev/null 2>&1 &"
+    "\"$sudo_flag\" GooFuzz -t \"$domain\" -e log,sql,txt,conf,pdf,doc,xls,ppt,odp,ods,docx,xlsx,pptx,bak,mdb,inc -p 100 -d 10 -o \"./result/$current_date/goofuzz_file_M1.txt\" > /dev/null 2>&1 &"
+    "\"$sudo_flag\" GooFuzz -t \"$domain\" -w fckeditor,ewebeditor,examples,admin,login,manage,system,console,log -p 100 -d 10 -o \"./result/$current_date/goofuzz_back_M1.txt\" > /dev/null 2>&1 &"
+    "\"$sudo_flag\" GooFuzz -t \"$domain\" -c \"登录\",\"后台\",\"日志\",\"配置\",\"备份\",pw,password,username,login -p 100 -d 10 -o \"./result/$current_date/goofuzz_keyword_M1.txt\" > /dev/null 2>&1 &"
+    "\"$sudo_flag\" python3 tool/metagoofil/metagoofil.py -d \"$domain\" -f -t log,sql,txt,conf,pdf,doc,xls,ppt,odp,ods,docx,xlsx,pptx,bak,mdb,inc > /dev/null 2>&1 &"
+    "\"$sudo_flag\" amass intel -ip -whois -d \"$domain\" -o \"./result/$current_date/amass_M1.txt\" > /dev/null 2>&1 &"
   )
 
   search_engines=("baidu" "anubis" "bing" "brave" "dnsdumpster" "duckduckgo" "hackertarget" "otx" "rapiddns" "sitedossier" "subdomaincenter" "subdomainfinderc99" "threatminer" "urlscan" "yahoo")
   for engine in "${search_engines[@]}"; do
       output_file="./result/$current_date/theHarvester_${engine}_M1.json"
-      commands+=("python3 tool/theHarvester/theHarvester.py -d \"$domain\" -l 1000 -f \"$output_file\" -n -b \"$engine\" &")
+      commands+=("\"$sudo_flag\" python3 tool/theHarvester/theHarvester.py -d \"$domain\" -l 1000 -f \"$output_file\" -n -b \"$engine\" > /dev/null 2>&1 &")
   done
   completed_tasks=0
   total_tasks=${#commands[@]}
@@ -77,7 +85,7 @@ if [ -n "$domain" ] && [ -n "$dic" ] ; then
   # 遍历并执行命令
   for command in "${commands[@]}"; do
       eval $command &
-      sleep 10
+      sleep 5
   done
   while true; do
     pid_1=$(pgrep GooFuzz)
@@ -98,11 +106,11 @@ if [ -n "$domain" ] && [ -n "$dic" ] ; then
     fi
   done
   commands=(
-      "amass enum -active -d \"$domain\" -brute -w \"$dic\" -dns-qps 500 -rqps 100 -trqps 100 -nocolor -dir tool/amass/amass4owasp -o \"./result/$current_date/amass_M2.json\" &"
-      "alterx -l \"$domain\" -pp \"word=$dic\" -enrich | dnsx -a -resp -j \"./result/$current_date/alterx_M2.json\" &"
-      "fierce --domain \"$domain\" --wide > \"./result/$current_date/fierce_M2.txt\" &"
-      "python3 tool/OneForAll/oneforall.py --target \"$domain\" --brute True --fmt json --path result/$current_date/ run &"
-      "ksubdomain e -d \"$domain\" -f \"$dic\" --ns true > \"./result/$current_date/ksubdomain_M2.txt\" &"
+      "\"$sudo_flag\" amass enum -active -d \"$domain\" -brute -w \"$dic\" -dns-qps 500 -rqps 100 -trqps 100 -nocolor -dir tool/amass/amass4owasp -o \"./result/$current_date/amass_M2.json\" > /dev/null 2>&1 &"
+      "\"$sudo_flag\" alterx -l \"$domain\" -pp \"word=$dic\" -enrich | dnsx -a -resp -j \"./result/$current_date/alterx_M2.json\" > /dev/null 2>&1 &"
+      "\"$sudo_flag\" fierce --domain \"$domain\" --wide > \"./result/$current_date/fierce_M2.txt\" &"
+      "\"$sudo_flag\" python3 tool/OneForAll/oneforall.py --target \"$domain\" --brute True --fmt json --path result/$current_date/ run > /dev/null 2>&1 &"
+      "\"$sudo_flag\" ksubdomain e -d \"$domain\" -f \"$dic\" --ns true > \"./result/$current_date/ksubdomain_M2.txt\" &"
   )
   completed_tasks=0
   total_tasks=${#commands[@]}
@@ -111,7 +119,7 @@ if [ -n "$domain" ] && [ -n "$dic" ] ; then
   # 遍历并执行命令
   for command in "${commands[@]}"; do
       eval $command &
-      sleep 1
+      sleep 30
   done
   while true; do
     pid_1=$(pgrep amass)
