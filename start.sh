@@ -140,8 +140,20 @@ fi
       break
     fi
   done
+  
+  rm -rf html_links*
+  rm -rf ksubdomain.yaml
 
+  python OSINT_Integration.py "result/$current_date/"
 
+  mv "result/$current_date/" "result/$current_date-bak/"
+  rm -rf "result/$current_date/theHarvester_*"
+  rm -rf "result/$current_date/$domain.json"
+  rm -rf "result/$current_date/amass_M1.txt"
+  rm -rf "result/$current_date/goofuzz_domain_M1.txt"
+  rm -rf "result/$current_date/goofuzz_back_M1.txt"
+  rm -rf "result/$current_date/goofuzz_file_M1.txt"
+  
   end_time=$(date +%s)
   # 计算运行时间
   elapsed_time=$((end_time - start_time))
